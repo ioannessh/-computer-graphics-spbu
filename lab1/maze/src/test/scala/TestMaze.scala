@@ -7,7 +7,7 @@ class TestMaze extends AnyFlatSpec with should.Matchers {
     val mazeArr = Array(
       Array('#', '.', '.', '.', '.', '#', '.', '.')
     ) // false - wall, true - void, '.' - void, other symbols - wall
-    val maze = Maze(mazeArr)
+    val maze = Maze(mazeArr, '.')
     maze.check((0, 0), (0, 0)) should be(false)
     maze.check((0, 5), (0, 5)) should be(false)
     maze.check((0, 0), (0, 1)) should be(false)
@@ -22,7 +22,7 @@ class TestMaze extends AnyFlatSpec with should.Matchers {
 
   "if enter or exit outsize maze" should "be returned false" in {
     val mazeArr = Array(Array('.'))
-    val maze = Maze(mazeArr)
+    val maze = Maze(mazeArr, '.')
     maze.check((-1, 0), (0, 0)) should be(false)
     maze.check((0, 1), (0, 0)) should be(false)
     maze.check((0, 0), (1, 0)) should be(false)
@@ -34,7 +34,7 @@ class TestMaze extends AnyFlatSpec with should.Matchers {
       Array('#', '.', '.', '#', '.', '#', '.', '.'),
       Array('.', '#', '.', '.', '.', '#', '.', '#')
     )
-    val maze = Maze(mazeArr)
+    val maze = Maze(mazeArr, '.')
 
     maze.check((0, 1), (0, 4)) should be(true)
     maze.check((0, 1), (1, 4)) should be(true)
@@ -47,10 +47,38 @@ class TestMaze extends AnyFlatSpec with should.Matchers {
       Array('#', '.', '#', '#', '.', '.', '#', '.'),
       Array('.', '#', '.', '.', '.', '#', '.', '#')
     )
-    val maze = Maze(mazeArr)
+    val maze = Maze(mazeArr, '.')
 
     maze.check((0, 1), (1, 0)) should be(false)
     maze.check((1, 6), (1, 4)) should be(false)
+  }
+
+  "test if path exist in big maze" should "return true" in {
+    val n = 10
+    var mazeSet: Set[(Int, Int)] = Set.empty
+    for (i <- 0 until  n) {
+      mazeSet = mazeSet.union(Set((0, i)))
+    }
+    for (i <- 0 until n) {
+      mazeSet = mazeSet.union(Set((i, n - 1)))
+    }
+    val maze = Maze(mazeSet, n, n)
+
+    maze.check((0, 0), (n - 1, n - 1)) should be(true)
+    maze.check((0, 0), (n - 1, n - 1)) should be(true)
+    maze.check((0, 0), (n - 1, n - 1)) should be(true)
+    maze.check((0, 0), (n - 1, n - 1)) should be(true)
+  }
+
+  "test if path not exist in big maze" should "return false" in {
+    val n = 1000000
+    val mazeSet = Set((0, 0), (n - 1, n - 1))
+    val maze = Maze(mazeSet, n, n)
+
+    maze.check((0, 0), (n - 1, n - 1)) should be(false)
+    maze.check((0, 0), (n - 1, n - 1)) should be(false)
+    maze.check((0, 0), (n - 1, n - 1)) should be(false)
+    maze.check((0, 0), (n - 1, n - 1)) should be(false)
   }
 
 }

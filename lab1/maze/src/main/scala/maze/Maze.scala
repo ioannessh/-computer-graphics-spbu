@@ -2,53 +2,49 @@ package maze
 
 import dsu._
 
-class Maze(val maze: Array[Array[Boolean]], val n: Int) {
-  private val dsu = new DSU(n)
+class Maze(val maze: Set[(Int, Int)], val n: Int, val m: Int) {
+  private val dsu = new DSU(n * m)
 
   private def calculate(): Unit = {
-    for (i <- maze.indices) {
-      maze(i).foldLeft((-1, false))((prev, it) => {
-        if (it && prev._2) dsu.union_set(id(i, prev._1 + 1), id(i, prev._1))
-        (prev._1 + 1, it)
-      })
+    for (i <- maze) {
+      val (x, y) = i
+      if (maze.contains((x + 1, y))) dsu.union_set(id(x + 1, y), id(x, y))
+      if (maze.contains((x - 1, y))) dsu.union_set(id(x - 1, y), id(x, y))
+      if (maze.contains((x, y + 1))) dsu.union_set(id(x, y + 1), id(x, y))
+      if (maze.contains((x, y - 1))) dsu.union_set(id(x, y - 1), id(x, y))
     }
-    if (maze.length > 0) maze.foldLeft((-1, Array.fill(maze(0).length)(false)))((prev, it) => {
-      for (i <- prev._2.indices) {
-        if (it(i) && prev._2(i)) dsu.union_set(id(prev._1, i), id(prev._1 + 1, i))
-      }
-      (prev._1 + 1, it)
-    })
   }
 
   def check(enter: (Int, Int), exit: (Int, Int)): Boolean = {
-    if (enter._1 < 0 || enter._2 < 0 || exit._1 < 0 || exit._2 < 0 ||
-        maze.length <= enter._1 || maze(0).length <= enter._2 || maze.length <= exit._1 || maze(0).length <= exit._2)
-      false
-    else
-      maze(enter._1)(enter._2) && maze(exit._1)(exit._2) &&
-        (dsu.find_set(id(enter._1, enter._2)) == dsu.find_set(id(exit._1, exit._2)))
+    maze.contains(enter) && maze.contains(exit) && dsu.find_set(id(enter._1, enter._2)) == dsu.find_set(id(exit._1, exit._2))
   }
 
-  var id = (i: Int, j: Int) => j * maze.length + i
+  var id = (i: Int, j: Int) => j * n + i
 }
 
 object Maze {
   def apply(maze: Array[Array[Boolean]]): Maze = {
-    val m = if (maze.length > 0) new Maze(maze, maze.length * maze(0).length)
-    else new Maze(maze, 0)
+    var mazeSet: Set[(Int, Int)] = Set.empty
+    for (i <- maze.indices) {
+      for (j <- maze(i).indices) {
+        if (maze(i)(j))
+          mazeSet = mazeSet.union(Set((i, j)))
+      }
+    }
+    val m = if (maze.length > 0) new Maze(mazeSet, maze.length, maze(0).length)
+    else new Maze(Set.empty, 0, 0)
     m.calculate()
     m
   }
 
-  def apply(maze: Array[Array[Boolean]], n: Int): Maze = {
-    val m = new Maze(maze, n)
-    m.calculate()
-    m
-  }
-
-  def apply(maze: Array[Array[Char]]): Maze = {
-    val bMaze = new Array[Array[Boolean]](maze.length)
-    for (i <- bMaze.indices) bMaze(i) = maze(i).map(_ == '.')
+  def apply(maze: Array[Array[Char]], voidCh: Char): Maze = {
+    val bMaze = maze.map(i => i.map(_ == voidCh))
     Maze(bMaze)
+  }
+
+  def apply(maze: Set[(Int, Int)], n: Int, m: Int): Maze = {
+    val rmaze = new Maze(maze, n, m)
+    rmaze.calculate()
+    rmaze
   }
 }
